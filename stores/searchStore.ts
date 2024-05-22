@@ -158,7 +158,7 @@ export const useSearchStore = defineStore('search', () => {
   }
 
   function reindex(values: Tabset[]) {
-    const urls = values.flatMap((ts: Tabset)=>_.map(ts.tabs, t=>t.url || ''))
+    const urls = values.flatMap((ts: Tabset)=>_.map(ts.tabs, (t:Tab)=>t.url || ''))
     useWindowsStore().openThrottledInWindow(urls)
     // const throttleOnePerXSeconds = throttledQueue(1, 3000, true)
     // chrome.windows.create({focused: true, width: 1024, height: 800}, (window: any) => {
@@ -195,7 +195,7 @@ export const useSearchStore = defineStore('search', () => {
         tabset.tabs.forEach((tab: Tab) => {
           if (tab.url) {
             if (urlSet.has(tab.url)) {
-              const existingDocIndex = _.findIndex(minimalIndex, d => {
+              const existingDocIndex = _.findIndex(minimalIndex, (d:any) => {
                 return d.url === tab.title
               })
               if (existingDocIndex >= 0) {
@@ -221,7 +221,7 @@ export const useSearchStore = defineStore('search', () => {
 
     console.debug(` populating search index from tabsets with ${minimalIndex.length} entries`)
     minimalIndex.forEach((doc: SearchDoc) => {
-      const removed = fuse.value.remove((d) => {
+      const removed = fuse.value.remove((d:any) => {
         return d.url === doc.url
       })
       if (removed && removed[0]) {
@@ -272,7 +272,7 @@ export const useSearchStore = defineStore('search', () => {
         if (c.metas && c.metas['keywords']) {
           searchDoc.keywords = c.metas['keywords']
         }
-        const removed = fuse.value.remove((doc) => {
+        const removed = fuse.value.remove((doc:any) => {
           return doc.url === searchDoc.url
         })
         overwritten += removed.length
