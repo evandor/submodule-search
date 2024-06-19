@@ -66,6 +66,7 @@ export const useSearchStore = defineStore('search', () => {
 
   async function init() {
     console.debug(" ...(re-)initializing searchStore")
+    //await onMessageListener.initListeners()
     urlSet = new Set()
     searchIndex.value = Fuse.createIndex(options.value.keys, [])
     fuse.value = new Fuse([], options.value, searchIndex.value)
@@ -87,13 +88,23 @@ export const useSearchStore = defineStore('search', () => {
     fuse.value.remove(f)
   }
 
+  function addObjectToIndex(o: Object) {
+    const parsed = JSON.parse(JSON.stringify(o));
+    const doc:SearchDoc = Object.assign(new SearchDoc(uid(),"","","","","","",[],"",""), parsed)
+    return addSearchDocToIndex(doc)
+  }
+
   function addToIndex(id: string, name: string, title: string, url: string, description: string, content: string, tabsets: string[], favIconUrl: string): number {
     const doc: SearchDoc = new SearchDoc(
       id, name, title, url, description, '', content, tabsets, '', favIconUrl
     )
-    //console.log("adding to index", doc)
+    return addSearchDocToIndex(doc)
+  }
+
+  function addSearchDocToIndex(doc: SearchDoc): number {
     // @ts-ignore
     const indexLength = fuse.value.getIndex().size()
+    console.log("adding to index", doc)
     fuse.value.add(doc)
     return indexLength
   }
@@ -321,6 +332,8 @@ export const useSearchStore = defineStore('search', () => {
     update,
     reindexTabset,
     reindexTab,
-    stats
+    stats,
+    addObjectToIndex,
+    addSearchDocToIndex
   }
 })
