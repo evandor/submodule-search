@@ -10,6 +10,7 @@ import {useBookmarksStore} from "src/bookmarks/stores/bookmarksStore";
 import {useTabsetService} from "src/tabsets/services/TabsetService2";
 import {uid} from "quasar";
 import {useTabsetsStore} from "src/tabsets/stores/tabsetsStore";
+import {ContentItem} from "src/content/models/ContentItem";
 
 function dummyPromise(timeout: number, tabToCloseId: number | undefined = undefined): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -70,6 +71,7 @@ export const useSearchStore = defineStore('search', () => {
     urlSet = new Set()
     searchIndex.value = Fuse.createIndex(options.value.keys, [])
     fuse.value = new Fuse([], options.value, searchIndex.value)
+    console.debug(" ...(re-)initializing searchStore - done")
   }
 
   // @ts-ignore
@@ -266,23 +268,23 @@ export const useSearchStore = defineStore('search', () => {
    *
    * @param contentPromise
    */
-  async function populateFromContent(contentPromise: Promise<any[]>) {
+  async function populateFromContent(contentItems: ContentItem[]) {
     console.debug(" ...populating search index from content")
     // --- add data from stored content
     let count = 0
     let countFiltered = 0
     let overwritten = 0
-    const content = await contentPromise
     // .then(content => {
-    content.forEach(c => {
+    contentItems.forEach((c: ContentItem) => {
       if (c.expires === 0 || urlExistsInATabset(c.url)) {
-        const searchDoc = new SearchDoc(c.id, c.name, c.title, c.url, c.description, c.keywords, c.content, c.tabsets, '', c.favIconUrl)
-        if (c.metas && c.metas['description']) {
-          searchDoc.description = c.metas['description']
-        }
-        if (c.metas && c.metas['keywords']) {
-          searchDoc.keywords = c.metas['keywords']
-        }
+        const searchDoc = new SearchDoc(c.id, 'c.name', c.title, c.url, '',
+           'c.keywords',  c.content, c.tabsetIds,'', '')
+        // if (c.metas && c.metas['description']) {
+        //   searchDoc.description = c.metas['description']
+        // }
+        // if (c.metas && c.metas['keywords']) {
+        //   searchDoc.keywords = c.metas['keywords']
+        // }
         const removed = fuse.value.remove((doc:any) => {
           return doc.url === searchDoc.url
         })
