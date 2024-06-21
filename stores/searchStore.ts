@@ -1,28 +1,8 @@
 import {defineStore} from 'pinia';
-import Fuse from 'fuse.js'
-import _ from "lodash"
+import Fuse, {FuseIndex} from 'fuse.js'
 import {SearchDoc} from "src/search/models/SearchDoc";
-import {Tabset} from "src/tabsets/models/Tabset";
 import {ref} from "vue";
-import {Tab} from "src/tabsets/models/Tab";
-import {useWindowsStore} from "src/windows/stores/windowsStore";
-import {useBookmarksStore} from "src/bookmarks/stores/bookmarksStore";
-import {useTabsetService} from "src/tabsets/services/TabsetService2";
 import {uid} from "quasar";
-import {useTabsetsStore} from "src/tabsets/stores/tabsetsStore";
-import {ContentItem} from "src/content/models/ContentItem";
-
-function dummyPromise(timeout: number, tabToCloseId: number | undefined = undefined): Promise<string> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (tabToCloseId) {
-        chrome.tabs.remove(tabToCloseId)
-      }
-      resolve("Success!");
-    }, timeout);
-  });
-}
-
 
 function overwrite(ident: string, doc: SearchDoc, removed: SearchDoc[]) {
   if (!doc[ident as keyof object]) {
@@ -30,15 +10,16 @@ function overwrite(ident: string, doc: SearchDoc, removed: SearchDoc[]) {
   }
 }
 
+/**
+ * A pinia store backed by a search engine index (fuse) based on URLs and document types
+ *
+ * The model for the documents is a SearchDoc with its url and a type as its identity fields.
+ */
 export const useSearchStore = defineStore('search', () => {
-
-  const {urlExistsInATabset} = useTabsetService()
 
   const term = ref<string>('')
 
-  const history = ref([] as unknown as string[])
-
-  const searchIndex = ref(null as unknown as any)
+  const searchIndex = ref<FuseIndex<any>>(null as unknown as any)
 
   const fuse = ref(null as unknown as Fuse<SearchDoc>)
 
@@ -63,15 +44,13 @@ export const useSearchStore = defineStore('search', () => {
     useExtendedSearch: true
   })
 
-  var urlSet: Set<string> = new Set()
+  let urlSet: Set<string> = new Set()
 
   async function init() {
     console.debug(" ...(re-)initializing searchStore")
-    //await onMessageListener.initListeners()
     urlSet = new Set()
     searchIndex.value = Fuse.createIndex(options.value.keys, [])
     fuse.value = new Fuse([], options.value, searchIndex.value)
-    console.debug(" ...(re-)initializing searchStore - done")
   }
 
   // @ts-ignore
@@ -92,23 +71,55 @@ export const useSearchStore = defineStore('search', () => {
 
   function addObjectToIndex(o: Object) {
     const parsed = JSON.parse(JSON.stringify(o));
-    const doc:SearchDoc = Object.assign(new SearchDoc(uid(),"","","","","","",[],"",""), parsed)
+    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), "", "", "", "", "", "", "", [], ""), parsed)
+    if (!doc.url) {
+      throw new Error("object to be added to search index does not have an URL field set.")
+    }
     return addSearchDocToIndex(doc)
   }
 
-  function addToIndex(id: string, name: string, title: string, url: string, description: string, content: string, tabsets: string[], favIconUrl: string): number {
-    const doc: SearchDoc = new SearchDoc(
-      id, name, title, url, description, '', content, tabsets, '', favIconUrl
-    )
-    return addSearchDocToIndex(doc)
-  }
+  function upsertObject(o: Object) {
+    const parsed = JSON.parse(JSON.stringify(o));
+    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), "", "", "", "", "", "", "", [], ""), parsed)
+    if (!doc.url) {
+      throw new Error("object to be added to search index does not have an URL field set.")
+    }
 
-  function addSearchDocToIndex(doc: SearchDoc): number {
-    // @ts-ignore
-    const indexLength = fuse.value.getIndex().size()
-    console.log("adding to index", doc)
+    const removed = fuse.value.remove((d: any) => {
+      return d.url === doc.url
+    })
+    if (removed && removed[0]) {
+      overwrite('name', doc, removed)
+      overwrite('description', doc, removed)
+      overwrite('keywords', doc, removed)
+      overwrite('content', doc, removed)
+    }
     fuse.value.add(doc)
-    return indexLength
+    return addSearchDocToIndex(doc)
+  }
+
+  // function addToIndex(id: string, name: string, title: string, url: string, description: string, content: string, tabsets: string[], favIconUrl: string) {
+  //   const doc: SearchDoc = new SearchDoc(
+  //     id, name, title, url, description, '', content, favIconUrl, tabsets, 'Tabsets'
+  //   )
+  //   addSearchDocToIndex(doc)
+  // }
+
+  /**
+   * replace when url matches
+   */
+  function addSearchDocToIndex(doc: SearchDoc) {
+    console.log("adding to index", doc)
+    const removed = fuse.value.remove((d: any) => {
+      return d.url === doc.url
+    })
+    if (removed && removed[0]) {
+      overwrite('name', doc, removed)
+      overwrite('description', doc, removed)
+      overwrite('keywords', doc, removed)
+      overwrite('content', doc, removed)
+    }
+    fuse.value.add(doc)
   }
 
   function update(url: string, key: string, value: string) {
@@ -141,201 +152,171 @@ export const useSearchStore = defineStore('search', () => {
     }
   }
 
-  function reindexTabset(tabsetId: string) {
-    const ts = useTabsetsStore().getTabset(tabsetId)
-    const values: Tabset[] = ts ? [ts] : []
-    reindex(values)
-  }
+  // function reindexTabset(tabsetId: string) {
+  //   const ts = useTabsetsStore().getTabset(tabsetId)
+  //   const values: Tabset[] = ts ? [ts] : []
+  //   reindex(values)
+  // }
 
-  async function reindexTab(tab: Tab): Promise<number> {
-    console.log("reindexing tab", tab)
-    const window = await chrome.windows.create({focused: true, width: 1024, height: 800})
-    // @ts-ignore
-    if (window) {
-      // @ts-ignore
-      useWindowsStore().screenshotWindow = window.id
-      // @ts-ignore
-      let tabToClose = await chrome.tabs.create({windowId: window.id, url: tab.url})
-      // @ts-ignore
-      if (tabToClose) {
-        // @ts-ignore
-        const promise = dummyPromise(3000, tabToClose.id)
-        return promise.then((res) => {
-          return window.id || 0
-        })
-      }
-      return Promise.reject("could not get tab")
-    }
-    return Promise.reject("could not get window")
+  // async function reindexTab(tab: Tab): Promise<number> {
+  //   console.log("reindexing tab", tab)
+  //   const window = await chrome.windows.create({focused: true, width: 1024, height: 800})
+  //   // @ts-ignore
+  //   if (window) {
+  //     // @ts-ignore
+  //     useWindowsStore().screenshotWindow = window.id
+  //     // @ts-ignore
+  //     let tabToClose = await chrome.tabs.create({windowId: window.id, url: tab.url})
+  //     // @ts-ignore
+  //     if (tabToClose) {
+  //       // @ts-ignore
+  //       const promise = dummyPromise(3000, tabToClose.id)
+  //       return promise.then((res) => {
+  //         return window.id || 0
+  //       })
+  //     }
+  //     return Promise.reject("could not get tab")
+  //   }
+  //   return Promise.reject("could not get window")
+  //
+  // }
 
-  }
 
-  function reindex(values: Tabset[]) {
-    const urls = values.flatMap((ts: Tabset)=>_.map(ts.tabs, (t:Tab)=>t.url || ''))
-    useWindowsStore().openThrottledInWindow(urls)
-    // const throttleOnePerXSeconds = throttledQueue(1, 3000, true)
-    // chrome.windows.create({focused: true, width: 1024, height: 800}, (window: any) => {
-    //   useWindowsStore().screenshotWindow = window.id
-    //   let tabToClose: number | undefined = undefined
-    //
-    //   const res: Promise<any>[] = values.flatMap((ts: Tabset) => {
-    //     return ts.tabs.map((t) => {
-    //       return throttleOnePerXSeconds(async () => {
-    //         chrome.tabs.create({windowId: window.id, url: t.url}, (tab: chrome.tabs.Tab) => {
-    //           tabToClose = tab.id
-    //           dummyPromise(3000, tab.id)
-    //         })
-    //         return dummyPromise(3000)
-    //       })
-    //     })
-    //   })
-    //
-    //   Promise.all(res)
-    //     .then(() => {
-    //       chrome.windows.remove(window.id)
-    //       useWindowsStore().screenshotWindow = null as unknown as number
-    //     })
-    //
-    // })
-  }
+  // deprecated
+  // async function populateFromTabsets() {
+  //   // --- add data from tabs directly, like url and title
+  //   console.debug(" ...populating search index from tabsets")
+  //   const minimalIndex: SearchDoc[] = []
+  //   //const res = fuse.value.remove((doc) => true)
+  //   _.forEach([...useTabsetsStore().tabsets.values()] as Tabset[], (tabset: Tabset) => {
+  //       tabset.tabs.forEach((tab: Tab) => {
+  //         if (tab.url) {
+  //           if (urlSet.has(tab.url)) {
+  //             const existingDocIndex = _.findIndex(minimalIndex, (d: any) => {
+  //               return d.url === tab.title
+  //             })
+  //             if (existingDocIndex >= 0) {
+  //               const existingDoc = minimalIndex[existingDocIndex]
+  //               // console.log("existingDoc", existingDoc)
+  //               if (existingDoc.tabsets.indexOf(tabset.id) < 0) {
+  //                 existingDoc.tabsets = existingDoc.tabsets.concat([tabset.id])
+  //                 minimalIndex.splice(existingDocIndex, 1, existingDoc)
+  //               }
+  //             } else {
+  //               const doc = new SearchDoc(uid(), tab.name || '', tab.title || '', tab.url, "", "", "", [tabset.id], '', "")
+  //               minimalIndex.push(doc)
+  //             }
+  //           } else {
+  //             const doc = new SearchDoc(uid(), tab.name || '', tab.title || '', tab.url, "", "", "", [tabset.id], '', "")
+  //             minimalIndex.push(doc)
+  //             urlSet.add(tab.url)
+  //           }
+  //         }
+  //       })
+  //     }
+  //   )
+  //
+  //   console.debug(` ...populating search index from tabsets with ${minimalIndex.length} entries`)
+  //   minimalIndex.forEach((doc: SearchDoc) => {
+  //     const removed = fuse.value.remove((d: any) => {
+  //       return d.url === doc.url
+  //     })
+  //     if (removed && removed[0]) {
+  //       overwrite('name', doc, removed)
+  //       overwrite('description', doc, removed)
+  //       overwrite('keywords', doc, removed)
+  //       overwrite('content', doc, removed)
+  //
+  //     }
+  //     fuse.value.add(doc)
+  //   })
+  // }
 
-  async function populateFromTabsets() {
-    // --- add data from tabs directly, like url and title
-    console.debug(" ...populating search index from tabsets")
-    const minimalIndex: SearchDoc[] = []
-    //const res = fuse.value.remove((doc) => true)
-    _.forEach([...useTabsetsStore().tabsets.values()] as Tabset[], (tabset: Tabset) => {
-        tabset.tabs.forEach((tab: Tab) => {
-          if (tab.url) {
-            if (urlSet.has(tab.url)) {
-              const existingDocIndex = _.findIndex(minimalIndex, (d:any) => {
-                return d.url === tab.title
-              })
-              if (existingDocIndex >= 0) {
-                const existingDoc = minimalIndex[existingDocIndex]
-                // console.log("existingDoc", existingDoc)
-                if (existingDoc.tabsets.indexOf(tabset.id) < 0) {
-                  existingDoc.tabsets = existingDoc.tabsets.concat([tabset.id])
-                  minimalIndex.splice(existingDocIndex, 1, existingDoc)
-                }
-              } else {
-                const doc = new SearchDoc(uid(), tab.name || '', tab.title || '', tab.url, "", "", "", [tabset.id], '', "")
-                minimalIndex.push(doc)
-              }
-            } else {
-              const doc = new SearchDoc(uid(), tab.name || '', tab.title || '', tab.url, "", "", "", [tabset.id], '', "")
-              minimalIndex.push(doc)
-              urlSet.add(tab.url)
-            }
-          }
-        })
-      }
-    )
-
-    console.debug(` ...populating search index from tabsets with ${minimalIndex.length} entries`)
-    minimalIndex.forEach((doc: SearchDoc) => {
-      const removed = fuse.value.remove((d:any) => {
-        return d.url === doc.url
-      })
-      if (removed && removed[0]) {
-        overwrite('name', doc, removed)
-        overwrite('description', doc, removed)
-        overwrite('keywords', doc, removed)
-        overwrite('content', doc, removed)
-
-      }
-      fuse.value.add(doc)
-    })
-  }
-  async function populateFromBookmarks() {
-    // --- add data from bookmarks directly, like url and title
-    console.debug(" ...populating search index from bookmarks")
-    const indexFromBookmarks: SearchDoc[] = []
-    _.forEach(useBookmarksStore().bookmarksLeaves, (bookmark: any) => {
-        if (bookmark && bookmark.url && !urlSet.has(bookmark.url)) {
-          urlSet.add(bookmark.url)
-          const doc = new SearchDoc("", "", bookmark.title || '', bookmark.url, "", "", "", [], bookmark.id, "")
-          indexFromBookmarks.push(doc)
-        }
-      }
-    )
-    console.log(` ...populating search index from bookmarks with ${indexFromBookmarks.length} entries`)
-    indexFromBookmarks.forEach((doc: SearchDoc) => fuse.value.add(doc))
-  }
+  // async function populateFromBookmarks() {
+  //   // --- add data from bookmarks directly, like url and title
+  //   console.debug(" ...populating search index from bookmarks")
+  //   const indexFromBookmarks: SearchDoc[] = []
+  //   _.forEach(useBookmarksStore().bookmarksLeaves, (bookmark: any) => {
+  //       if (bookmark && bookmark.url && !urlSet.has(bookmark.url)) {
+  //         urlSet.add(bookmark.url)
+  //         const doc = new SearchDoc("", "", bookmark.title || '', bookmark.url, "", "", "", [], bookmark.id, "")
+  //         indexFromBookmarks.push(doc)
+  //       }
+  //     }
+  //   )
+  //   console.log(` ...populating search index from bookmarks with ${indexFromBookmarks.length} entries`)
+  //   indexFromBookmarks.forEach((doc: SearchDoc) => fuse.value.add(doc))
+  // }
 
   /**
    * Initial population of search index when the extension is reloaded (and when run the first time)
-   *
-   * @param contentPromise
    */
-  async function populateFromContent(contentItems: ContentItem[]) {
-    console.debug(" ...populating search index from content")
-    // --- add data from stored content
-    let count = 0
-    let countFiltered = 0
-    let overwritten = 0
-    // .then(content => {
-    contentItems.forEach((c: ContentItem) => {
-      if (c.expires === 0 || urlExistsInATabset(c.url)) {
-        const searchDoc = new SearchDoc(c.id, 'c.name', c.title, c.url, '',
-           'c.keywords',  c.content, c.tabsetIds,'', '')
-        // if (c.metas && c.metas['description']) {
-        //   searchDoc.description = c.metas['description']
-        // }
-        // if (c.metas && c.metas['keywords']) {
-        //   searchDoc.keywords = c.metas['keywords']
-        // }
-        const removed = fuse.value.remove((doc:any) => {
-          return doc.url === searchDoc.url
-        })
-        overwritten += removed.length
-        fuse.value.add(searchDoc)
-        urlSet.add(c.url)
-        count++
-      } else {
-        countFiltered++
-      }
-    })
-    console.debug(` ...populating search index from content with ${count} entries (${overwritten} of which overwritten), ${countFiltered} is/are filtered (not in any tab)`)
-    stats.value.set("content.count", count)
-    stats.value.set("content.overwritten", overwritten)
-    stats.value.set("content.filtered", countFiltered)
+  // async function populateFromContent(contentItems: object[]) {
+  //   console.debug(" ...populating search index from content", contentItems)
+  //   // --- add data from stored content
+  //   let count = 0
+  //   let countFiltered = 0
+  //   let overwritten = 0
+  //   // .then(content => {
+  //   contentItems.forEach((c: object) => {
+  //     if (c.expires === 0 || urlExistsInATabset(c.url)) {
+  //       const searchDoc = new SearchDoc(c.id, '', c.title, c.url, c.metas['description'] || '',
+  //         '', c.content, c.tabsetIds, '', '')
+  //       console.log("searchDoc", searchDoc)
+  //       // if (c.metas && c.metas['description']) {
+  //       //   searchDoc.description = c.metas['description']
+  //       // }
+  //       // if (c.metas && c.metas['keywords']) {
+  //       //   searchDoc.keywords = c.metas['keywords']
+  //       // }
+  //       const removed = fuse.value.remove((doc: any) => {
+  //         return doc.url === searchDoc.url
+  //       })
+  //       overwritten += removed.length
+  //       fuse.value.add(searchDoc)
+  //       urlSet.add(c.url)
+  //       count++
+  //     } else {
+  //       countFiltered++
+  //     }
+  //   })
+  //   console.debug(` ...populating search index from content with ${count} entries (${overwritten} of which overwritten), ${countFiltered} is/are filtered (not in any tab)`)
+  //   stats.value.set("content.count", count)
+  //   stats.value.set("content.overwritten", overwritten)
+  //   stats.value.set("content.filtered", countFiltered)
+  //
+  // }
 
-  }
-
-  function indexTabs(tsId: string, tabs: Tab[]) {
-    const minimalIndex: SearchDoc[] = []
-    const urlSet: Set<string> = new Set()
-    tabs.forEach((tab: Tab) => {
-      if (tab.url) {
-        if (!urlSet.has(tab.url)) {
-          const doc = new SearchDoc("", "", tab.title || '', tab.url, "", "", "", [tsId], '', "")
-          minimalIndex.push(doc)
-          urlSet.add(tab.url)
-        }
-      }
-    })
-    if (fuse.value) {
-      minimalIndex.forEach((doc: SearchDoc) => fuse.value.add(doc))
-    }
-  }
+  // function indexTabs(tsId: string, tabs: Tab[]) {
+  //   const minimalIndex: SearchDoc[] = []
+  //   const urlSet: Set<string> = new Set()
+  //   tabs.forEach((tab: Tab) => {
+  //     if (tab.url) {
+  //       if (!urlSet.has(tab.url)) {
+  //         const doc = new SearchDoc("", "", tab.title || '', tab.url, "", "", "", [tsId], '', "")
+  //         minimalIndex.push(doc)
+  //         urlSet.add(tab.url)
+  //       }
+  //     }
+  //   })
+  //   if (fuse.value) {
+  //     minimalIndex.forEach((doc: SearchDoc) => fuse.value.add(doc))
+  //   }
+  // }
 
   return {
     init,
-    populateFromContent,
-    populateFromTabsets,
-    populateFromBookmarks,
+ //   populateFromContent,
     getIndex,
-    addToIndex,
+   // addToIndex,
     remove,
     term,
     search,
-    indexTabs,
     update,
-    reindexTabset,
-    reindexTab,
+    //reindexTabset,
+    //reindexTab,
     stats,
     addObjectToIndex,
-    addSearchDocToIndex
+    upsertObject
   }
 })

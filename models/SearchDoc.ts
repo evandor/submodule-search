@@ -11,9 +11,10 @@ export class SearchDoc {
     public description: string,
     public keywords: string,
     public content: string,
-    public tabsets: string[],
-    public bookmarkId: string,
-    public favIconUrl: string) {
+    public favIconUrl: string,
+    public sourceIds: string[] = [],
+    public sourceType: string = "Tab"
+    ) {
 
     this.created = new Date().getTime()
     this.note = ''
