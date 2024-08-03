@@ -109,7 +109,7 @@ export const useSearchStore = defineStore('search', () => {
    * replace when url matches
    */
   function addSearchDocToIndex(doc: SearchDoc) {
-    console.log("adding to index", doc)
+    //console.log("adding to index", doc)
     const removed = fuse.value.remove((d: any) => {
       return d.url === doc.url
     })
