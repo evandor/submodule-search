@@ -13,7 +13,8 @@ export class SearchDoc {
     public content: string,
     public favIconUrl: string,
     public sourceIds: string[] = [],
-    public sourceType: string = "Tab"
+    public sourceType: string = "Tab",
+    public tags: string = ''
     ) {
 
     this.created = new Date().getTime()

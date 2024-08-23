@@ -178,15 +178,8 @@ const filterFn = (val: string, update: any, abort: any) => {
           tabsetsAsHit.push(pseudoHit)
         }
       })
-      //console.log("tabsetsAsHit", tabsetsAsHit)
       options.value = tabsetsAsHit
       options.value = options.value.concat(theHits.value)
-      //console.log("options", options.value, typeof options.value)
-      // if (options.value) {
-      //   const pseudoHit = new Hit("highlight", "title", "", "", 0, 0, 0, [], [], [], "", "")
-      //   pseudoHit.name = val
-      //   options.value = options.value.concat(pseudoHit)
-      // }
     })
   }, 100)
 }

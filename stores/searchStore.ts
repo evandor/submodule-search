@@ -28,7 +28,8 @@ export const useSearchStore = defineStore('search', () => {
   const options = ref({
     keys: [
       {name: 'name', weight: 10},
-      {name: 'title', weight: 6},
+      {name: 'title', weight: 8},
+      {name: 'tags', weight: 7},
       {name: 'url', weight: 4},
       {name: 'description', weight: 3},
       {name: 'keywords', weight: 2},
@@ -71,7 +72,7 @@ export const useSearchStore = defineStore('search', () => {
 
   function addObjectToIndex(o: Object) {
     const parsed = JSON.parse(JSON.stringify(o));
-    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), "", "", "", "", "", "", "", [], ""), parsed)
+    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), "", "", "", "", "", "", "", [], "",""), parsed)
     if (!doc.url) {
       throw new Error("object to be added to search index does not have an URL field set.")
     }
@@ -80,7 +81,7 @@ export const useSearchStore = defineStore('search', () => {
 
   function upsertObject(o: Object) {
     const parsed = JSON.parse(JSON.stringify(o));
-    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), "", "", "", "", "", "", "", [], ""), parsed)
+    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), "", "", "", "", "", "", "", [], "",""), parsed)
     if (!doc.url) {
       throw new Error("object to be added to search index does not have an URL field set.")
     }
@@ -93,23 +94,16 @@ export const useSearchStore = defineStore('search', () => {
       overwrite('description', doc, removed)
       overwrite('keywords', doc, removed)
       overwrite('content', doc, removed)
+      overwrite('tags', doc, removed)
     }
     fuse.value.add(doc)
     return addSearchDocToIndex(doc)
   }
 
-  // function addToIndex(id: string, name: string, title: string, url: string, description: string, content: string, tabsets: string[], favIconUrl: string) {
-  //   const doc: SearchDoc = new SearchDoc(
-  //     id, name, title, url, description, '', content, favIconUrl, tabsets, 'Tabsets'
-  //   )
-  //   addSearchDocToIndex(doc)
-  // }
-
   /**
    * replace when url matches
    */
   function addSearchDocToIndex(doc: SearchDoc) {
-    //console.log("adding to index", doc)
     const removed = fuse.value.remove((d: any) => {
       return d.url === doc.url
     })
@@ -118,12 +112,12 @@ export const useSearchStore = defineStore('search', () => {
       overwrite('description', doc, removed)
       overwrite('keywords', doc, removed)
       overwrite('content', doc, removed)
+      overwrite('tags', doc, removed)
     }
     fuse.value.add(doc)
   }
 
   function update(url: string, key: string, value: string) {
-    //console.log("updating search index", url, key, value)
     if (!fuse || !fuse.value) {
       return // called too early?
     }
@@ -144,6 +138,9 @@ export const useSearchStore = defineStore('search', () => {
         case 'keywords':
           newDoc.keywords = value
           break
+        case 'tags':
+          newDoc.tags = value
+          break
         default:
           console.log("could not update", key)
       }
@@ -159,7 +156,6 @@ export const useSearchStore = defineStore('search', () => {
   // }
 
   // async function reindexTab(tab: Tab): Promise<number> {
-  //   console.log("reindexing tab", tab)
   //   const window = await chrome.windows.create({focused: true, width: 1024, height: 800})
   //   // @ts-ignore
   //   if (window) {
@@ -197,7 +193,6 @@ export const useSearchStore = defineStore('search', () => {
   //             })
   //             if (existingDocIndex >= 0) {
   //               const existingDoc = minimalIndex[existingDocIndex]
-  //               // console.log("existingDoc", existingDoc)
   //               if (existingDoc.tabsets.indexOf(tabset.id) < 0) {
   //                 existingDoc.tabsets = existingDoc.tabsets.concat([tabset.id])
   //                 minimalIndex.splice(existingDocIndex, 1, existingDoc)
@@ -262,7 +257,6 @@ export const useSearchStore = defineStore('search', () => {
   //     if (c.expires === 0 || urlExistsInATabset(c.url)) {
   //       const searchDoc = new SearchDoc(c.id, '', c.title, c.url, c.metas['description'] || '',
   //         '', c.content, c.tabsetIds, '', '')
-  //       console.log("searchDoc", searchDoc)
   //       // if (c.metas && c.metas['description']) {
   //       //   searchDoc.description = c.metas['description']
   //       // }
