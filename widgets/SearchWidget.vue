@@ -203,7 +203,7 @@ const updateSearch = (val: any) => {
     console.log("got tsid", tsId)
     if (tsId) {
       useCommandExecutor()
-        .execute(new SelectTabsetCommand(tsId, val.spaces[0] || undefined))
+        .execute(new SelectTabsetCommand(tsId))
     }
   }
 }
