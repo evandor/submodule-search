@@ -45,11 +45,8 @@ export const useSearchStore = defineStore('search', () => {
     useExtendedSearch: true
   })
 
-  let urlSet: Set<string> = new Set()
-
   async function init() {
     console.debug(" ...(re-)initializing searchStore")
-    urlSet = new Set()
     searchIndex.value = Fuse.createIndex(options.value.keys, [])
     fuse.value = new Fuse([], options.value, searchIndex.value)
   }

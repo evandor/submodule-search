@@ -80,7 +80,7 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, onUnmounted, ref, watch, watchEffect} from "vue";
+import {ref, watchEffect} from "vue";
 import {useSearchStore} from "src/search/stores/searchStore";
 import {Hit} from "src/search/models/Hit";
 import {useRoute, useRouter} from "vue-router";
@@ -101,7 +101,6 @@ const props = defineProps({
 
 const searchStore = useSearchStore()
 const search = ref(props.searchTerm)
-const typed = ref('')
 const theHits = ref<Hit[]>([])
 const moreHits = ref<boolean>(false)
 const router = useRouter()
@@ -138,7 +137,6 @@ function submitSearch() {
 }
 
 const options = ref<Hit[]>([])
-const model = ref(null)
 
 const runSearch = (term: string) => {
   if (term && term.trim().length > 2) {
