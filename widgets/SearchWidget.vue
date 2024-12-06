@@ -90,8 +90,9 @@ import {useQueryExecutor} from "src/services/QueryExecutor";
 import {useUiStore} from "src/ui/stores/uiStore";
 import JsUtils from "src/utils/JsUtils";
 import {useCommandExecutor} from "src/core/services/CommandExecutor";
-import {SelectTabsetCommand} from "src/tabsets/commands/SelectTabset";
+import {SelectTabsetCommand} from "src/tabsets/commands/SelectTabsetCommand";
 import {useTabsetsStore} from "src/tabsets/stores/tabsetsStore";
+import {useTabsetsUiStore} from "src/tabsets/stores/tabsetsUiStore";
 
 const props = defineProps({
   fromPanel: {type: Boolean, default: false},
@@ -202,6 +203,9 @@ const updateSearch = (val: any) => {
     if (tsId) {
       useCommandExecutor()
         .execute(new SelectTabsetCommand(tsId))
+        .then(() => {
+          //useTabsetsUiStore().addTabsetToLastUsedList(tsId)
+        })
     }
   }
 }
