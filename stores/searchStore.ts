@@ -6,7 +6,7 @@ import {uid} from "quasar";
 
 function overwrite(ident: string, doc: SearchDoc, removed: SearchDoc[]) {
   if (!doc[ident as keyof object]) {
-    doc[ident as keyof object] = removed[0][ident as keyof object]
+    doc[ident as keyof object] = removed[0]![ident as keyof object]
   }
 }
 
@@ -121,7 +121,7 @@ export const useSearchStore = defineStore('search', () => {
     const removed: SearchDoc[] = fuse.value.remove((doc: SearchDoc) => doc.url === url)
     console.debug("found removed: ", removed)
     if (removed && removed.length > 0) {
-      let newDoc: SearchDoc = removed[0]
+      let newDoc: SearchDoc = removed[0]!
       switch (key) {
         case 'name':
           newDoc.name = value
