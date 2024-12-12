@@ -62,7 +62,7 @@
             </q-item-label>
             <q-item-label v-else class="text-subtitle2">{{ scope.opt.title }}</q-item-label>
 
-            <q-item-label caption class="text-blue-8">{{ scope.opt.url }}</q-item-label>
+            <q-item-label caption class="text-accent">{{ scope.opt.url }}</q-item-label>
             <q-rating v-if="scope.opt.id !== 'highlight' && !scope.opt.id.startsWith('tabset|')"
                       :model-value="Math.round(scope.opt.score / 18)"
                       size="13px"
