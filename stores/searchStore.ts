@@ -51,7 +51,7 @@ export const useSearchStore = defineStore('search', () => {
     fuse.value = new Fuse([], options.value, searchIndex.value)
   }
 
-  // @ts-expect-error
+  // @ts-expect-error TODO
   function getIndex(): Fuse.FuseIndex<SearchDoc> {
     return fuse.value ? fuse.value.getIndex() : null
   }
@@ -154,15 +154,15 @@ export const useSearchStore = defineStore('search', () => {
 
   // async function reindexTab(tab: Tab): Promise<number> {
   //   const window = await chrome.windows.create({focused: true, width: 1024, height: 800})
-  //   // @ts-expect-error
+  //   // @ts-expect-error TODO
   //   if (window) {
-  //     // @ts-expect-error
+  //     // @ts-expect-error TODO
   //     useWindowsStore().screenshotWindow = window.id
-  //     // @ts-expect-error
+  //     // @ts-expect-error TODO
   //     let tabToClose = await chrome.tabs.create({windowId: window.id, url: tab.url})
-  //     // @ts-expect-error
+  //     // @ts-expect-error TODO
   //     if (tabToClose) {
-  //       // @ts-expect-error
+  //       // @ts-expect-error TODO
   //       const promise = dummyPromise(3000, tabToClose.id)
   //       return promise.then((res) => {
   //         return window.id || 0
