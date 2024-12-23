@@ -1,5 +1,4 @@
 export class SearchDoc {
-
   created: number
   note: string
 
@@ -13,12 +12,10 @@ export class SearchDoc {
     public content: string,
     public favIconUrl: string,
     public sourceIds: string[] = [],
-    public sourceType: string = "Tab",
-    public tags: string = ''
-    ) {
-
+    public sourceType: string = 'Tab',
+    public tags: string = '',
+  ) {
     this.created = new Date().getTime()
     this.note = ''
-
   }
 }

@@ -1,8 +1,8 @@
-import {defineStore} from 'pinia';
-import Fuse, {FuseIndex} from 'fuse.js'
-import {SearchDoc} from "src/search/models/SearchDoc";
-import {ref} from "vue";
-import {uid} from "quasar";
+import { defineStore } from 'pinia'
+import Fuse, { FuseIndex } from 'fuse.js'
+import { SearchDoc } from 'src/search/models/SearchDoc'
+import { ref } from 'vue'
+import { uid } from 'quasar'
 
 function overwrite(ident: string, doc: SearchDoc, removed: SearchDoc[]) {
   if (!doc[ident as keyof object]) {
@@ -16,7 +16,6 @@ function overwrite(ident: string, doc: SearchDoc, removed: SearchDoc[]) {
  * The model for the documents is a SearchDoc with its url and a type as its identity fields.
  */
 export const useSearchStore = defineStore('search', () => {
-
   const term = ref<string>('')
 
   const searchIndex = ref<FuseIndex<any>>(null as unknown as any)
@@ -27,14 +26,14 @@ export const useSearchStore = defineStore('search', () => {
 
   const options = ref({
     keys: [
-      {name: 'name', weight: 10},
-      {name: 'title', weight: 8},
-      {name: 'tags', weight: 7},
-      {name: 'url', weight: 4},
-      {name: 'description', weight: 3},
-      {name: 'keywords', weight: 2},
-      {name: 'content', weight: 1},
-      {name: 'note', weight: 10}
+      { name: 'name', weight: 10 },
+      { name: 'title', weight: 8 },
+      { name: 'tags', weight: 7 },
+      { name: 'url', weight: 4 },
+      { name: 'description', weight: 3 },
+      { name: 'keywords', weight: 2 },
+      { name: 'content', weight: 1 },
+      { name: 'note', weight: 10 },
     ],
     includeScore: true,
     includeMatches: true,
@@ -42,11 +41,11 @@ export const useSearchStore = defineStore('search', () => {
     threshold: 0.0,
     // ignoreFieldNorm: true
     ignoreLocation: true,
-    useExtendedSearch: true
+    useExtendedSearch: true,
   })
 
   async function init() {
-    console.debug(" ...(re-)initializing searchStore")
+    console.debug(' ...(re-)initializing searchStore')
     searchIndex.value = Fuse.createIndex(options.value.keys, [])
     fuse.value = new Fuse([], options.value, searchIndex.value)
   }
@@ -58,7 +57,7 @@ export const useSearchStore = defineStore('search', () => {
 
   function search(term: string, limit: number | undefined = undefined) {
     if (limit) {
-      return fuse.value.search(term, {limit})
+      return fuse.value.search(term, { limit })
     }
     return fuse.value ? fuse.value.search(term) : []
   }
@@ -68,19 +67,25 @@ export const useSearchStore = defineStore('search', () => {
   }
 
   function addObjectToIndex(o: Object) {
-    const parsed = JSON.parse(JSON.stringify(o));
-    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), "", "", "", "", "", "", "", [], "",""), parsed)
+    const parsed = JSON.parse(JSON.stringify(o))
+    const doc: SearchDoc = Object.assign(
+      new SearchDoc(uid(), '', '', '', '', '', '', '', [], '', ''),
+      parsed,
+    )
     if (!doc.url) {
-      throw new Error("object to be added to search index does not have an URL field set.")
+      throw new Error('object to be added to search index does not have an URL field set.')
     }
     return addSearchDocToIndex(doc)
   }
 
   function upsertObject(o: Object) {
-    const parsed = JSON.parse(JSON.stringify(o));
-    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), "", "", "", "", "", "", "", [], "",""), parsed)
+    const parsed = JSON.parse(JSON.stringify(o))
+    const doc: SearchDoc = Object.assign(
+      new SearchDoc(uid(), '', '', '', '', '', '', '', [], '', ''),
+      parsed,
+    )
     if (!doc.url) {
-      throw new Error("object to be added to search index does not have an URL field set.")
+      throw new Error('object to be added to search index does not have an URL field set.')
     }
 
     const removed = fuse.value.remove((d: any) => {
@@ -119,7 +124,7 @@ export const useSearchStore = defineStore('search', () => {
       return // called too early?
     }
     const removed: SearchDoc[] = fuse.value.remove((doc: SearchDoc) => doc.url === url)
-    console.debug("found removed: ", removed)
+    console.debug('found removed: ', removed)
     if (removed && removed.length > 0) {
       let newDoc: SearchDoc = removed[0]!
       switch (key) {
@@ -139,9 +144,9 @@ export const useSearchStore = defineStore('search', () => {
           newDoc.tags = value
           break
         default:
-          console.log("could not update", key)
+          console.log('could not update', key)
       }
-      console.debug("adding new doc", newDoc)
+      console.debug('adding new doc', newDoc)
       fuse.value.add(newDoc)
     }
   }
@@ -173,7 +178,6 @@ export const useSearchStore = defineStore('search', () => {
   //   return Promise.reject("could not get window")
   //
   // }
-
 
   // deprecated
   // async function populateFromTabsets() {
@@ -297,9 +301,9 @@ export const useSearchStore = defineStore('search', () => {
 
   return {
     init,
- //   populateFromContent,
+    //   populateFromContent,
     getIndex,
-   // addToIndex,
+    // addToIndex,
     remove,
     term,
     search,
@@ -308,6 +312,6 @@ export const useSearchStore = defineStore('search', () => {
     //reindexTab,
     stats,
     addObjectToIndex,
-    upsertObject
+    upsertObject,
   }
 })

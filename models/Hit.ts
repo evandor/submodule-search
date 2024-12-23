@@ -21,14 +21,12 @@ export class Hit {
     public spaces: string[],
     public matches: object[],
     public description: string,
-    public keywords: string
+    public keywords: string,
   ) {
-
     this.updated = new Date().getTime()
     this.lastActive = 0
     this.activatedCount = 0
     this.loadedCount = 0
     this.name = undefined
   }
-
 }

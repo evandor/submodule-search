@@ -10,9 +10,8 @@ AppEventDispatcher.dispatchEvent('add-to-search', {
   description: this.tab.description,
   content: content ? content : '',
   tabsets: [this.tabset!.id],
-  favIconUrl: this.tab.favIconUrl || ''
+  favIconUrl: this.tab.favIconUrl || '',
 })
-
 ```
 
 and in the AppEventDispatcher this is handled like this
