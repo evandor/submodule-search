@@ -204,7 +204,6 @@ const updateSearch = (val: any) => {
       useCommandExecutor()
         .execute(new SelectTabsetCommand(tsId))
         .then(() => {
-          //useTabsetsUiStore().addTabsetToLastUsedList(tsId)
         })
     }
   }
