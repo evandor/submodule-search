@@ -14,8 +14,8 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watchEffect } from 'vue'
 import { useSearchStore } from 'src/search/stores/searchStore'
+import { onMounted, ref, watchEffect } from 'vue'
 
 const props = defineProps({
   searchTerm: { type: String, default: '' },

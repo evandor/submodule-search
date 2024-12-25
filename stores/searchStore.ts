@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia'
 import Fuse, { FuseIndex } from 'fuse.js'
+import { defineStore } from 'pinia'
+import { uid } from 'quasar'
 import { SearchDoc } from 'src/search/models/SearchDoc'
 import { ref } from 'vue'
-import { uid } from 'quasar'
 
 function overwrite(ident: string, doc: SearchDoc, removed: SearchDoc[]) {
   if (!doc[ident as keyof object]) {
