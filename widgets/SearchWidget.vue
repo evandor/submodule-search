@@ -17,8 +17,7 @@
       @keydown.enter.prevent="submitSearch()"
       use-input
       :options="options"
-      @filter="filterFn"
-    >
+      @filter="filterFn">
       <template v-slot:no-option>
         <q-item>
           <q-item-section class="text-grey"> No results </q-item-section>
@@ -37,8 +36,7 @@
           class="cursor-pointer"
           color="grey"
           size="12px"
-          @click="clearSearch"
-        />
+          @click="clearSearch" />
       </template>
 
       <template v-slot:append>
@@ -48,8 +46,7 @@
             size="18px"
             :color="useUiStore().tabsFilter ? 'red' : 'black'"
             class="cursor-pointer"
-            @click="filterNotSearch()"
-          />
+            @click="filterNotSearch()" />
           <q-tooltip v-if="useUiStore().tabsFilter" class="tooltip"
             >Click again to remove filter</q-tooltip
           >
@@ -81,8 +78,7 @@
               :model-value="Math.round(scope.opt.score / 18)"
               size="13px"
               color="warning"
-              readonly
-            />
+              readonly />
           </q-item-section>
         </q-item>
       </template>
@@ -91,8 +87,8 @@
 </template>
 
 <script lang="ts" setup>
+import { SearchIndexQuery } from 'src/core/domain/queries/SearchIndexQuery'
 import { useCommandExecutor } from 'src/core/services/CommandExecutor'
-import { SearchIndexQuery } from 'src/domain/queries/SearchIndexQuery'
 import { Hit } from 'src/search/models/Hit'
 import { useSearchStore } from 'src/search/stores/searchStore'
 import NavigationService from 'src/services/NavigationService'
