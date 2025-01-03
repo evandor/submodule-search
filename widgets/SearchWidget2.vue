@@ -7,8 +7,7 @@
       ref="searchInputRef"
       :placeholder="inputPlaceholder()"
       class="fit q-mx-md"
-      v-model="search"
-    >
+      v-model="search">
     </q-input>
   </div>
 </template>

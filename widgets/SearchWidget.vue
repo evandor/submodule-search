@@ -30,13 +30,7 @@
       <template v-slot:prepend>
         <q-icon v-if="highlight" name="flashlight_on" />
         <q-icon v-else-if="!searchStore.term" name="search" />
-        <q-icon
-          v-else
-          name="clear"
-          class="cursor-pointer"
-          color="grey"
-          size="12px"
-          @click="clearSearch" />
+        <q-icon v-else name="clear" class="cursor-pointer" color="grey" size="12px" @click="clearSearch" />
       </template>
 
       <template v-slot:append>
@@ -47,12 +41,8 @@
             :color="useUiStore().tabsFilter ? 'red' : 'black'"
             class="cursor-pointer"
             @click="filterNotSearch()" />
-          <q-tooltip v-if="useUiStore().tabsFilter" class="tooltip"
-            >Click again to remove filter</q-tooltip
-          >
-          <q-tooltip v-else class="tooltip"
-            >Filter for '{{ searchStore.term }}' instead of searching</q-tooltip
-          >
+          <q-tooltip v-if="useUiStore().tabsFilter" class="tooltip">Click again to remove filter</q-tooltip>
+          <q-tooltip v-else class="tooltip">Filter for '{{ searchStore.term }}' instead of searching</q-tooltip>
         </q-avatar>
       </template>
 
@@ -64,9 +54,7 @@
             <q-img v-else :src="scope.opt.favIconUrl" />
           </q-item-section>
           <q-item-section>
-            <q-item-label v-if="scope.opt.id === 'highlight'" class="text-subtitle2"
-              >highlight in page
-            </q-item-label>
+            <q-item-label v-if="scope.opt.id === 'highlight'" class="text-subtitle2">highlight in page </q-item-label>
             <q-item-label v-else-if="scope.opt.id.startsWith('tabset|')" class="text-subtitle2">
               {{ tabsetName(scope.opt.id) }}
             </q-item-label>
@@ -251,8 +239,7 @@ const filterNotSearch = () => {
     useUiStore().setHighlightTerm(undefined)
     JsUtils.runCssHighlight()
   } else {
-    const useValue =
-      searchStore.term && searchStore.term.trim().length > 0 ? searchStore.term.trim() : undefined
+    const useValue = searchStore.term && searchStore.term.trim().length > 0 ? searchStore.term.trim() : undefined
     useUiStore().tabsFilter = useValue
     useUiStore().setHighlightTerm(useValue)
     JsUtils.runCssHighlight()

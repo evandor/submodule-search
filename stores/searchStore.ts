@@ -68,10 +68,7 @@ export const useSearchStore = defineStore('search', () => {
 
   function addObjectToIndex(o: Object) {
     const parsed = JSON.parse(JSON.stringify(o))
-    const doc: SearchDoc = Object.assign(
-      new SearchDoc(uid(), '', '', '', '', '', '', '', [], '', ''),
-      parsed,
-    )
+    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), '', '', '', '', '', '', '', [], '', ''), parsed)
     if (!doc.url) {
       throw new Error('object to be added to search index does not have an URL field set.')
     }
@@ -80,10 +77,7 @@ export const useSearchStore = defineStore('search', () => {
 
   function upsertObject(o: Object) {
     const parsed = JSON.parse(JSON.stringify(o))
-    const doc: SearchDoc = Object.assign(
-      new SearchDoc(uid(), '', '', '', '', '', '', '', [], '', ''),
-      parsed,
-    )
+    const doc: SearchDoc = Object.assign(new SearchDoc(uid(), '', '', '', '', '', '', '', [], '', ''), parsed)
     if (!doc.url) {
       throw new Error('object to be added to search index does not have an URL field set.')
     }
