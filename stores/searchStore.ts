@@ -45,7 +45,7 @@ export const useSearchStore = defineStore('search', () => {
   })
 
   async function init() {
-    console.debug(' ...(re-)initializing searchStore')
+    // console.debug(' ...(re-)initializing searchStore')
     searchIndex.value = Fuse.createIndex(options.value.keys, [])
     fuse.value = new Fuse([], options.value, searchIndex.value)
   }
