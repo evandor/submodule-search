@@ -1,7 +1,7 @@
 export class Hit {
   lastActive: number
   activatedCount: number
-  loadedCount: number
+  //loadedCount: number
   history: string[] = []
   selected: boolean = false
   name: string | undefined
@@ -26,7 +26,7 @@ export class Hit {
     this.updated = new Date().getTime()
     this.lastActive = 0
     this.activatedCount = 0
-    this.loadedCount = 0
+    // this.loadedCount = 0
     this.name = undefined
   }
 }
