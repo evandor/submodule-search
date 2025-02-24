@@ -1,15 +1,14 @@
 <template>
-  <div class="q-gutter-md row items-start fit">
-    <q-input
-      dense
-      standout
-      filled
-      ref="searchInputRef"
-      :placeholder="inputPlaceholder()"
-      class="fit q-mx-md"
-      v-model="search">
-    </q-input>
-  </div>
+  <q-input
+    dense
+    borderless
+    type="search"
+    ref="searchInputRef"
+    placeholder="Search..."
+    class="q-mx-md text-caption"
+    style="max-height: 28px"
+    v-model="search">
+  </q-input>
 </template>
 
 <script lang="ts" setup>
