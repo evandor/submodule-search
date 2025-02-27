@@ -4,9 +4,10 @@
     borderless
     type="search"
     ref="searchInputRef"
-    placeholder="Search..."
+    :placeholder="props.placeholder"
     class="q-mx-md text-caption"
     style="max-height: 28px"
+    @keyup.enter="emits('onEnter')"
     v-model="search">
   </q-input>
 </template>
@@ -15,15 +16,22 @@
 import { useSearchStore } from 'src/search/stores/searchStore'
 import { onMounted, ref, watchEffect } from 'vue'
 
-const props = defineProps({
-  searchTerm: { type: String, default: '' },
-  searchHits: { type: Number, required: false },
+type Props = {
+  searchTerm: string
+  searchHits?: number
+  placeholder: string | undefined
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  searchTerm: '',
+  placeholder: 'Search...',
 })
+
+const emits = defineEmits(['onEnter'])
 
 const searchStore = useSearchStore()
 const search = ref(props.searchTerm)
 const searchInputRef = ref<HTMLInputElement | null>(null)
-const highlight = ref<string | undefined>(undefined)
 
 onMounted(() => {
   setTimeout(() => {
@@ -36,14 +44,4 @@ onMounted(() => {
 watchEffect(() => {
   searchStore.term = search.value
 })
-
-const inputPlaceholder = () => {
-  if (highlight.value) {
-    return highlight.value
-  }
-  if (props.searchHits && props.searchHits > 0) {
-    return `Found ${props.searchTerm} ${props.searchHits} time(s)`
-  }
-  return 'Search all tabs and bookmarks'
-}
 </script>
