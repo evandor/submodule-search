@@ -1,13 +1,11 @@
 <template>
   <q-input
     filled
-    bg-color="grey-3"
     type="search"
     ref="searchInputRef"
     placeholder="Filter (for search press enter)"
-    class="q-mx-xs q-mt-xs q-mb-none text-caption k-mini-input"
+    class="darkInDarkMode brightInBrightMode q-mx-xs q-mt-xs q-mb-none text-caption k-mini-input"
     @keyup.enter="emits('onEnter')"
-    color="grey-4"
     clearable
     v-model="search">
     <template v-slot:prepend>
@@ -20,6 +18,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useQuasar } from 'quasar'
 import { useSearchStore } from 'src/search/stores/searchStore'
 import { onMounted, ref, watchEffect } from 'vue'
 
@@ -34,6 +33,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emits = defineEmits(['onEnter', 'onTermChanged'])
+
+const $q = useQuasar()
 
 const searchStore = useSearchStore()
 const search = ref(props.searchTerm)
@@ -59,6 +60,15 @@ chrome.commands.getAll().then((cs: chrome.commands.Command[]) => {
     searchKeyboardShortcut.value = searchCommand.shortcut
   }
 })
+
+if ($q.platform.is.chrome && $q.platform.is.bex) {
+  chrome.commands.onCommand.addListener((command) => {
+    if (command === 'search') {
+      console.debug(`got Command: ${command}`)
+      searchInputRef.value!.focus()
+    }
+  })
+}
 </script>
 
 <!-- https://stackoverflow.com/questions/78573433/quasar-how-i-can-change-the-height-of-q-select -->
