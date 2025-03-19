@@ -54,12 +54,14 @@ watchEffect(() => {
   emits('onTermChanged', { term: search.value })
 })
 
-chrome.commands.getAll().then((cs: chrome.commands.Command[]) => {
-  const searchCommand = cs.filter((c: chrome.commands.Command) => c.name === 'search').shift()
-  if (searchCommand) {
-    searchKeyboardShortcut.value = searchCommand.shortcut
-  }
-})
+if (chrome && chrome.commands) {
+  chrome.commands.getAll().then((cs: chrome.commands.Command[]) => {
+    const searchCommand = cs.filter((c: chrome.commands.Command) => c.name === 'search').shift()
+    if (searchCommand) {
+      searchKeyboardShortcut.value = searchCommand.shortcut
+    }
+  })
+}
 
 if ($q.platform.is.chrome && $q.platform.is.bex) {
   chrome.commands.onCommand.addListener((command) => {
