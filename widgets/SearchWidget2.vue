@@ -6,13 +6,23 @@
     placeholder="Filter (for search press enter)"
     class="darkInDarkMode brightInBrightMode q-mx-xs q-mt-xs q-mb-none text-caption k-mini-input"
     @keyup.enter="emits('onEnter')"
+    @focus="searchBoxFocused = true"
+    @blur="searchBoxFocused = false"
     clearable
     v-model="search">
     <template v-slot:prepend>
       <q-icon name="search" size="sm" />
     </template>
     <template v-slot:append>
-      <span class="text-caption">{{ searchKeyboardShortcut }}</span>
+      <span class="text-caption"
+        >{{ searchKeyboardShortcut }}
+        <template v-if="searchBoxFocused">
+          <template v-if="props.filteredFoldersCount">
+            {{ hitsAndFoldersCount }}<q-icon name="o_folder" size="xs" color="warning" class="q-ml-none q-mb-xs" />
+          </template>
+          {{ hitsAndEntriesCount }}<q-icon name="o_tab" size="xs" color="primary" class="q-ml-xs q-mb-xs" />
+        </template>
+      </span>
     </template>
   </q-input>
 </template>
@@ -20,16 +30,19 @@
 <script lang="ts" setup>
 import { useQuasar } from 'quasar'
 import { useSearchStore } from 'src/search/stores/searchStore'
+import { Tabset } from 'src/tabsets/models/Tabset'
+import { useTabsetsStore } from 'src/tabsets/stores/tabsetsStore'
 import { onMounted, ref, watchEffect } from 'vue'
 
 type Props = {
   searchTerm: string
-  searchHits?: number
+  filteredTabsCount?: number
+  filteredFoldersCount?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   searchTerm: '',
-  placeholder: 'Search...',
+  filteredTabsCount: 0,
 })
 
 const emits = defineEmits(['onEnter', 'onTermChanged'])
@@ -40,6 +53,10 @@ const searchStore = useSearchStore()
 const search = ref(props.searchTerm)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const searchKeyboardShortcut = ref<string | undefined>(undefined)
+const currentTabset = ref<Tabset | undefined>(undefined)
+const hitsAndFoldersCount = ref('2')
+const hitsAndEntriesCount = ref('')
+const searchBoxFocused = ref(false)
 
 onMounted(() => {
   setTimeout(() => {
@@ -52,6 +69,8 @@ onMounted(() => {
 watchEffect(() => {
   searchStore.term = search.value
   emits('onTermChanged', { term: search.value })
+  hitsAndEntriesCount.value = search.value ? `${props.filteredTabsCount}` : `${currentTabset.value?.tabs.length}`
+  hitsAndFoldersCount.value = search.value ? `${props.filteredFoldersCount}` : `${currentTabset.value?.folders.length}`
 })
 
 if (chrome && chrome.commands) {
@@ -71,6 +90,10 @@ if ($q.platform.is.chrome && $q.platform.is.bex) {
     }
   })
 }
+
+watchEffect(() => {
+  currentTabset.value = useTabsetsStore().getCurrentTabset
+})
 </script>
 
 <!-- https://stackoverflow.com/questions/78573433/quasar-how-i-can-change-the-height-of-q-select -->
