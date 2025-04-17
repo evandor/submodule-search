@@ -74,7 +74,6 @@ watchEffect(() => {
 
 if (chrome && chrome.commands) {
   chrome.commands.getAll().then((cs: chrome.commands.Command[]) => {
-    console.log('checking cs', cs)
     const searchCommand = cs.filter((c: chrome.commands.Command) => c.name === 'search').shift()
     if (searchCommand) {
       searchKeyboardShortcut.value = searchCommand.shortcut
