@@ -1,6 +1,5 @@
 <template>
   <q-input
-    filled
     type="search"
     ref="searchInputRef"
     placeholder="Filter (for search press enter)"
