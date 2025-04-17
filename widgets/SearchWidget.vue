@@ -77,6 +77,7 @@
 <script lang="ts" setup>
 import { SearchIndexQuery } from 'src/core/domain/queries/SearchIndexQuery'
 import { useCommandExecutor } from 'src/core/services/CommandExecutor'
+import JsUtils from 'src/core/utils/JsUtils'
 import { Hit } from 'src/search/models/Hit'
 import { useSearchStore } from 'src/search/stores/searchStore'
 import NavigationService from 'src/services/NavigationService'
@@ -84,7 +85,6 @@ import { useQueryExecutor } from 'src/services/QueryExecutor'
 import { SelectTabsetCommand } from 'src/tabsets/commands/SelectTabsetCommand'
 import { useTabsetsStore } from 'src/tabsets/stores/tabsetsStore'
 import { useUiStore } from 'src/ui/stores/uiStore'
-import JsUtils from 'src/utils/JsUtils'
 import { ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
