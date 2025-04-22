@@ -2,14 +2,12 @@
   <div class="q-gutter-md row items-start fit">
     <q-select
       dense
-      standout
-      filled
+      rounded
+      outlined
       autofocus
       :placeholder="inputPlaceholder()"
       class="fit q-mx-md"
-      color="primary"
-      :bg-color="props.fromPanel ? 'white' : ''"
-      label-color="primary"
+      color="white"
       :model-value="search"
       ref="searchBox"
       hide-dropdown-icon
@@ -28,8 +26,8 @@
       </template>
 
       <template v-slot:prepend>
-        <q-icon v-if="highlight" name="flashlight_on" />
-        <q-icon v-else-if="!searchStore.term" name="search" />
+        <q-icon v-if="highlight" name="flashlight_on" color="white" />
+        <q-icon v-else-if="!searchStore.term" name="search" color="white" />
         <q-icon v-else name="clear" class="cursor-pointer" color="grey" size="12px" @click="clearSearch" />
       </template>
 
@@ -241,3 +239,9 @@ const filterNotSearch = () => {
   JsUtils.runCssHighlight()
 }
 </script>
+
+<style>
+.q-field__input {
+  color: white;
+}
+</style>
