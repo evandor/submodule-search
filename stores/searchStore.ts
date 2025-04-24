@@ -100,7 +100,7 @@ export const useSearchStore = defineStore('search', () => {
    * replace when url matches
    */
   function addSearchDocToIndex(doc: SearchDoc) {
-    const removed = fuse.value.remove((d: any) => {
+    const removed = fuse.value?.remove((d: any) => {
       return d.url === doc.url
     })
     if (removed && removed[0]) {
@@ -110,7 +110,7 @@ export const useSearchStore = defineStore('search', () => {
       overwrite('content', doc, removed)
       overwrite('tags', doc, removed)
     }
-    fuse.value.add(doc)
+    fuse.value?.add(doc)
   }
 
   function update(url: string, key: string, value: string) {
