@@ -2,25 +2,23 @@
   <q-input
     type="search"
     ref="searchInputRef"
-    placeholder="Filter (for search press enter)"
-    class="darkInDarkMode brightInBrightMode q-mx-xs q-mt-xs q-mb-none text-caption k-mini-input"
+    :placeholder="searchBoxFocused ? 'Filter (for search press enter)' : ''"
+    class="darkInDarkMode brightInBrightMode q-mx-sm q-mt-xs q-mb-none text-caption k-mini-input"
     @keyup.enter="emits('onEnter')"
     @focus="searchBoxFocused = true"
     @blur="searchBoxFocused = false"
     clearable
     v-model="search">
     <template v-slot:prepend>
-      <q-icon name="search" size="sm" />
+      <q-icon name="search" size="sm" color="grey-5" />
     </template>
     <template v-slot:append>
-      <span class="text-caption"
+      <span class="text-caption" v-if="searchBoxFocused && useFeaturesStore().hasFeature(FeatureIdent.DEV_MODE)"
         >{{ searchKeyboardShortcut }}
-        <template v-if="searchBoxFocused">
-          <template v-if="props.filteredFoldersCount">
-            {{ hitsAndFoldersCount }}<q-icon name="o_folder" size="xs" color="warning" class="q-ml-none q-mb-xs" />
-          </template>
-          {{ hitsAndEntriesCount }}<q-icon name="o_tab" size="xs" color="primary" class="q-ml-xs q-mb-xs" />
+        <template v-if="props.filteredFoldersCount">
+          {{ hitsAndFoldersCount }}<q-icon name="o_folder" size="xs" color="warning" class="q-ml-none q-mb-xs" />
         </template>
+        {{ hitsAndEntriesCount }}<q-icon name="o_tab" size="xs" color="primary" class="q-ml-xs q-mb-xs" />
       </span>
     </template>
   </q-input>
@@ -28,6 +26,8 @@
 
 <script lang="ts" setup>
 import { useQuasar } from 'quasar'
+import { FeatureIdent } from 'src/app/models/FeatureIdent'
+import { useFeaturesStore } from 'src/features/stores/featuresStore'
 import { useSearchStore } from 'src/search/stores/searchStore'
 import { Tabset } from 'src/tabsets/models/Tabset'
 import { useTabsetsStore } from 'src/tabsets/stores/tabsetsStore'
