@@ -7,7 +7,6 @@
       autofocus
       :placeholder="inputPlaceholder()"
       class="fit q-mx-md"
-      color="white"
       :model-value="search"
       ref="searchBox"
       hide-dropdown-icon
@@ -26,9 +25,9 @@
       </template>
 
       <template v-slot:prepend>
-        <q-icon v-if="highlight" name="flashlight_on" color="white" />
-        <q-icon v-else-if="!searchStore.term" name="search" color="white" />
-        <q-icon v-else name="clear" class="cursor-pointer" color="grey" size="12px" @click="clearSearch" />
+        <q-icon v-if="highlight" name="flashlight_on" />
+        <q-icon v-else-if="!searchStore.term" name="search" />
+        <q-icon v-else name="clear" class="cursor-pointer" size="12px" @click="clearSearch" />
       </template>
 
       <!--      <template v-slot:append>-->
@@ -239,9 +238,3 @@ const filterNotSearch = () => {
   JsUtils.runCssHighlight()
 }
 </script>
-
-<style>
-.q-field__input {
-  color: white;
-}
-</style>
