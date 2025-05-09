@@ -7,20 +7,36 @@
     @keyup.enter="emits('onEnter')"
     @focus="searchBoxFocused = true"
     @blur="searchBoxFocused = false"
-    clearable
     v-model="search">
     <template v-slot:prepend>
       <q-icon name="search" size="sm" color="grey-5" />
     </template>
-    <!--    <template v-slot:append>-->
-    <!--      <span class="text-caption" v-if="searchBoxFocused && useFeaturesStore().hasFeature(FeatureIdent.DEV_MODE)"-->
-    <!--        >{{ searchKeyboardShortcut }}-->
-    <!--        <template v-if="props.filteredFoldersCount">-->
-    <!--          {{ hitsAndFoldersCount }}<q-icon name="o_folder" size="xs" color="warning" class="q-ml-none q-mb-xs" />-->
-    <!--        </template>-->
-    <!--        {{ hitsAndEntriesCount }}<q-icon name="o_tab" size="xs" color="primary" class="q-ml-xs q-mb-xs" />-->
-    <!--      </span>-->
-    <!--    </template>-->
+    <template v-slot:append>
+      <span class="text-caption" v-if="searchBoxFocused">
+        <!--        {{ searchKeyboardShortcut }}-->
+        <!--        <template v-if="props.filteredFoldersCount">-->
+        <!--          {{ hitsAndFoldersCount }}<q-icon name="o_folder" size="xs" color="warning" class="q-ml-none q-mb-xs" />-->
+        <!--        </template>-->
+        <!--        {{ hitsAndEntriesCount }}<q-icon name="o_tab" size="xs" color="primary" class="q-ml-xs q-mb-xs" />-->
+        <q-icon
+          v-if="search && search.trim().length > 0"
+          name="o_backspace"
+          size="xs"
+          color="grey"
+          class="q-ml-xs q-mb-xs cursor-pointer"
+          @click="clearSearch()">
+          <q-tooltip class="tooltip-small">Clear Input</q-tooltip>
+        </q-icon>
+        <q-icon
+          name="o_cancel"
+          size="xs"
+          color="grey"
+          class="q-ml-xs q-mb-xs cursor-pointer"
+          @click="useUiStore().setQuickAccess('search', false)">
+          <q-tooltip class="tooltip-small">Hide Search Box</q-tooltip>
+        </q-icon>
+      </span>
+    </template>
   </q-input>
 </template>
 
@@ -29,6 +45,7 @@ import { useQuasar } from 'quasar'
 import { useSearchStore } from 'src/search/stores/searchStore'
 import { Tabset } from 'src/tabsets/models/Tabset'
 import { useTabsetsStore } from 'src/tabsets/stores/tabsetsStore'
+import { useUiStore } from 'src/ui/stores/uiStore'
 import { onMounted, ref, watchEffect } from 'vue'
 
 type Props = {
@@ -91,6 +108,10 @@ if ($q.platform.is.chrome && $q.platform.is.bex) {
 watchEffect(() => {
   currentTabset.value = useTabsetsStore().getCurrentTabset
 })
+
+const clearSearch = () => {
+  search.value = ''
+}
 </script>
 
 <!-- https://stackoverflow.com/questions/78573433/quasar-how-i-can-change-the-height-of-q-select -->
