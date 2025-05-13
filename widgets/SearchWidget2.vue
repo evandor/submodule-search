@@ -87,13 +87,15 @@ watchEffect(() => {
   hitsAndFoldersCount.value = search.value ? `${props.filteredFoldersCount}` : `${currentTabset.value?.folders.length}`
 })
 
-if (chrome && chrome.commands) {
+try {
   chrome.commands.getAll().then((cs: chrome.commands.Command[]) => {
     const searchCommand = cs.filter((c: chrome.commands.Command) => c.name === 'search').shift()
     if (searchCommand) {
       searchKeyboardShortcut.value = searchCommand.shortcut
     }
   })
+} catch (error) {
+  console.debug("can't check for newtab extension", error)
 }
 
 if ($q.platform.is.chrome && $q.platform.is.bex) {
